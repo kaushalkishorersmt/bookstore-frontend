@@ -8,7 +8,20 @@
 
 <script>
 export default {
-  name: 'app'
+  name: 'app',
+  created () {
+    this.checkCurrentLogin()
+  },
+  updated () {
+    this.checkCurrentLogin()
+  },
+  methods: {
+    checkCurrentLogin () {
+      if (!this.currentUser && this.$route.path !== '/') {
+        this.$router.push('/?redirect=' + this.$route.path)
+      }
+    }
+  }
 }
 </script>
 

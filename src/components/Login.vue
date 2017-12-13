@@ -1,13 +1,16 @@
 <template>
-  <div class="login-wrapper border border-login">
-    <form class="form-signin" @submit.prevent="lgoin">
-      <h2 class="form-signin-heading">Please sign in</h2>
-      <label for="inputEmail" class="sr-only">Email address</label>
-      <input v-model="email" type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
-      <label for="inputPassword" class="sr-only">Password</label>
-      <input v-model="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-      <button class="btn btn-lg btn-primary btn-block" type="submit" >Sign in</button>
-    </form>
+  <div class="login-overlay">
+    <div class="login-wrapper border border-light">
+      <form class="form-signin" @submit.prevent="login">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <div class="alert alert-danger" v-if="error">{{ error }}</div>
+        <label for="inputEmail" class="sr-only">Email address</label>
+        <input v-model="email" type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input v-model="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -17,21 +20,56 @@
     data () {
       return {
         email: '',
-        password: ''
+        password: '',
+        error: false
       }
     },
+    created () {
+      this.checkCurrentLogin()
+    },
+    updated () {
+      this.checkCurrentLogin()
+    },
     methods: {
+      checkCurrentLogin () {
+        if (localStorage.token) {
+          this.$router.replace(this.$route.query.redirect || '/authors')
+        }
+      },
       login () {
-        console.log(this.email)
-        console.log(this.password)
+        // console.log(this.email)
+        // console.log(this.password)
+        this.$http.post('/auths', { user: this.email, password: this.password })
+          .then(request => this.loginSuccessful(request))
+          .catch(() => this.loginFailed())
+      },
+      loginSuccessful (req) {
+        if (!req.data.token) {
+          this.loginFailed()
+          return
+        }
+
+        localStorage.token = req.data.token
+        this.error = false
+
+        this.$router.replace(this.$route.query.redirect || '/authors')
+      },
+      loginFailed () {
+        this.error = 'Login failed!'
+        delete localStorage.token
       }
     }
   }
 </script>
 
 <style lang="css">
-  body {
-    background: #605856;
+  .login-overlay {
+    background: #605B56 !important;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
   }
 
   .login-wrapper {
